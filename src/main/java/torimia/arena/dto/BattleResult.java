@@ -11,9 +11,9 @@ import java.sql.Time;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class BattleResult {
 
-    String nameWinner;
+    Long winnerId;
 
-    String nameLoser;
+    Long loserId;
 
     Time battleTime;
 
