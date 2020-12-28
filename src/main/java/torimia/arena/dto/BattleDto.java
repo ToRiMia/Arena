@@ -7,6 +7,9 @@ import javax.validation.constraints.NotNull;
 @Data
 public class BattleDto {
 
+    @NotNull
+    Long id;
+
     @NotNull(message = "First fighter must be not null")
     SuperheroDtoForBattle superhero1;
 

@@ -1,6 +1,6 @@
 package torimia.arena.services;
 
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import torimia.arena.dto.BattleDto;
@@ -13,9 +13,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 @Slf4j
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Service
 public class BattleServiceImpl implements BattleService {
+
+    private int timeToSleep = 100;
 
     @Override
     public BattleResult battle(BattleDto dto) {
@@ -36,8 +38,8 @@ public class BattleServiceImpl implements BattleService {
         Date dateOfBattle = Date.valueOf(LocalDate.now());
         battleResult.setDate(dateOfBattle);
 
-        throw new IndexOutOfBoundsException();
- //      return battleResult;
+        //      throw new IndexOutOfBoundsException();
+        return battleResult;
     }
 
     private SuperheroDtoForBattle chooseFirstFighter(BattleDto battle) {
@@ -45,16 +47,15 @@ public class BattleServiceImpl implements BattleService {
         return chooseFirst == 1 ? battle.getSuperhero1() : battle.getSuperhero2();
     }
 
-    private BattleResult battle(SuperheroDtoForBattle fighter1, SuperheroDtoForBattle fighter2, BattleResult battleResult){
+    private BattleResult battle(SuperheroDtoForBattle fighter1, SuperheroDtoForBattle fighter2, BattleResult battleResult) {
         try {
             while (battle(fighter1, fighter2) && battle(fighter2, fighter1)) {
-                Thread.sleep(100);
+                Thread.sleep(timeToSleep);
             }
-        }catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-       log.error("Battle not finished");
-    }
-
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Battle not finished");
+        }
 
         if (fighter1.isAlive()) {
             getBattleResult(fighter1, fighter2, battleResult);
