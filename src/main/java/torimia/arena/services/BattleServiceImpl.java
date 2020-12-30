@@ -1,6 +1,6 @@
 package torimia.arena.services;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import torimia.arena.dto.BattleDto;
@@ -17,7 +17,7 @@ import java.time.LocalDate;
 @Service
 public class BattleServiceImpl implements BattleService {
 
-    private int timeToSleep = 100;
+    private final int timeToSleep;
 
     @Override
     public BattleResult battle(BattleDto dto) {
@@ -37,6 +37,8 @@ public class BattleServiceImpl implements BattleService {
 
         Date dateOfBattle = Date.valueOf(LocalDate.now());
         battleResult.setDate(dateOfBattle);
+
+        battleResult.setId(dto.getId());
 
         //      throw new IndexOutOfBoundsException();
         return battleResult;

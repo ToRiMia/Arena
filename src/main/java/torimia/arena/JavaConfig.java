@@ -33,4 +33,9 @@ public class JavaConfig {
                 .rootUri(baseUrl)
                 .build();
     }
+
+    @Bean
+    public int timeToSleep(){
+        return 100;
+    }
 }

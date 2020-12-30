@@ -10,14 +10,16 @@ import java.sql.Date;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class BattleResult {
 
-    Long winnerId;
+    private Long id;
 
-    Long loserId;
+    private Long winnerId;
 
-    Long battleTime;
+    private Long loserId;
 
-    Integer attackNumber;
+    private Long battleTime;
 
-    Date date;
+    private Integer attackNumber;
+
+    private Date date;
 
 }
