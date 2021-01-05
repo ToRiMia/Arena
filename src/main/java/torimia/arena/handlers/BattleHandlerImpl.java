@@ -13,7 +13,7 @@ import torimia.arena.services.BattleService;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class BattleHandlerImpl implements BattleHandler{
+public class BattleHandlerImpl implements BattleHandler {
 
     private static final String BATTLE_RESULT_URL = "/arena/battle/result";
     private static final String BATTLE_RESULT_ERROR_URL = "/arena/battle/result_error";
