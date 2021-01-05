@@ -35,7 +35,8 @@ public class ListenerMQ {
             log.info("Battle result: {}", result);
             rabbitTemplate.convertAndSend(battleResultQueueName, result);
 
-//            throw new RuntimeException();
+            if (((int) (Math.random() * 10)) == 5)
+                throw new RuntimeException();
         } catch (Exception ex) {
             log.error("Error in sending battle result: {}, message: {}", ex, ex.getMessage());
             rabbitTemplate.convertAndSend(fightStatusQueueName, new MessageDtoMQ(dto.getId(), FightStatus.FINISHED_UNSUCCESSFUL));
