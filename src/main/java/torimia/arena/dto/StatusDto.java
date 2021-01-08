@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class MessageDtoMQ {
+public class StatusDto {
    private Long id;
 
    private FightStatus message;
