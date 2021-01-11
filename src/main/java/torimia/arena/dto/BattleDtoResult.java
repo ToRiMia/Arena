@@ -14,8 +14,6 @@ public class BattleDtoResult {
 
     private Long winnerId;
 
-    private Long loserId;
-
     private Long battleTime;
 
     private Integer attackNumber;

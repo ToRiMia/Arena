@@ -3,6 +3,7 @@ package torimia.arena.dto;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Data
 public class BattleDto {
@@ -10,9 +11,6 @@ public class BattleDto {
     @NotNull
     Long id;
 
-    @NotNull(message = "First fighter must be not null")
-    SuperheroDtoForBattle superhero1;
-
-    @NotNull(message = "First fighter must be not null")
-    SuperheroDtoForBattle superhero2;
+    @NotNull(message = "Fighters must be not null")
+    List<SuperheroDtoForBattle> superheroes;
 }

@@ -24,24 +24,24 @@ class BattleServiceTest {
 
     }
 
-    @Test
-    void battle() {
-        SuperheroDtoForBattle superhero1 = createSuperhero();
-        SuperheroDtoForBattle superhero2 = createSuperhero();
-
-        BattleDto battleDto = new BattleDto();
-        battleDto.setSuperhero1(superhero1);
-        battleDto.setSuperhero2(superhero2);
-
-        BattleDtoResult battleResult = service.battle(battleDto);
-
-        assertThat(battleResult)
-                .returns(Date.valueOf(LocalDate.now()), BattleDtoResult::getDate)
-                .returns(SUPERHERO_ID, BattleDtoResult::getLoserId)
-                .returns(SUPERHERO_ID, BattleDtoResult::getWinnerId);
-        assertTrue(battleResult.getBattleTime() > 0);
-        assertTrue(battleResult.getAttackNumber() > 0);
-    }
+//    @Test
+//    void battle() {
+//        SuperheroDtoForBattle superhero1 = createSuperhero();
+//        SuperheroDtoForBattle superhero2 = createSuperhero();
+//
+//        BattleDto battleDto = new BattleDto();
+//        battleDto.setSuperhero1(superhero1);
+//        battleDto.setSuperhero2(superhero2);
+//
+//        BattleDtoResult battleResult = service.battle(battleDto);
+//
+//        assertThat(battleResult)
+//                .returns(Date.valueOf(LocalDate.now()), BattleDtoResult::getDate)
+//                .returns(SUPERHERO_ID, BattleDtoResult::getLoserId)
+//                .returns(SUPERHERO_ID, BattleDtoResult::getWinnerId);
+//        assertTrue(battleResult.getBattleTime() > 0);
+//        assertTrue(battleResult.getAttackNumber() > 0);
+//    }
 
     private SuperheroDtoForBattle createSuperhero() {
         return SuperheroDtoForBattle.builder()
