@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>torimia</groupId>
-    <artifactId>arena</artifactId>
+    <artifactId>battleDtoForServer</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Arena</name>
 

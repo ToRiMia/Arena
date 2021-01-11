@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import torimia.arena.dto.BattleDto;
-import torimia.arena.dto.BattleResult;
+import torimia.arena.dto.BattleDtoResult;
 import torimia.arena.dto.SuperheroDtoForBattle;
 
 import java.sql.Date;
@@ -22,20 +22,20 @@ public class BattleServiceImpl implements BattleService {
     private final int timeToSleep;
 
     @Override
-    public BattleResult battle(BattleDto dto) {
+    public BattleDtoResult battle(BattleDto dto) {
         SuperheroDtoForBattle fighter1;
         SuperheroDtoForBattle fighter2;
 
         fighter1 = chooseFirstFighter(dto);
         fighter2 = fighter1.equals(dto.getSuperhero1()) ? dto.getSuperhero2() : dto.getSuperhero1();
 
-        Instant beginFight = Instant.now();
+        Instant beginBattle = Instant.now();
 
-        BattleResult battleResult = battle(fighter1, fighter2, new BattleResult());
-        Instant endFight = Instant.now();
+        BattleDtoResult battleResult = battle(fighter1, fighter2, new BattleDtoResult());
+        Instant endBattle = Instant.now();
 
-        Duration fightDuration = Duration.between(beginFight, endFight);
-        battleResult.setBattleTime(fightDuration.getSeconds());
+        Duration battleDuration = Duration.between(beginBattle, endBattle);
+        battleResult.setBattleTime(battleDuration.getSeconds());
 
         Date dateOfBattle = Date.valueOf(LocalDate.now());
         battleResult.setDate(dateOfBattle);
@@ -51,7 +51,7 @@ public class BattleServiceImpl implements BattleService {
         return chooseFirst == 1 ? battle.getSuperhero1() : battle.getSuperhero2();
     }
 
-    private BattleResult battle(SuperheroDtoForBattle fighter1, SuperheroDtoForBattle fighter2, BattleResult battleResult) {
+    private BattleDtoResult battle(SuperheroDtoForBattle fighter1, SuperheroDtoForBattle fighter2, BattleDtoResult battleResult) {
         try {
             while (battle(fighter1, fighter2) && battle(fighter2, fighter1)) {
                 Thread.sleep(timeToSleep);
@@ -74,7 +74,7 @@ public class BattleServiceImpl implements BattleService {
         return defender.isAlive();
     }
 
-    private void getBattleResult(SuperheroDtoForBattle winner, SuperheroDtoForBattle loser, BattleResult battleResult) {
+    private void getBattleResult(SuperheroDtoForBattle winner, SuperheroDtoForBattle loser, BattleDtoResult battleResult) {
         battleResult.setWinnerId(winner.getId());
         battleResult.setLoserId(loser.getId());
         battleResult.setAttackNumber(winner.getAttackCount());

@@ -8,7 +8,7 @@ import java.sql.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class BattleResult {
+public class BattleDtoResult {
 
     private Long id;
 

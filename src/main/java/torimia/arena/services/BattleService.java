@@ -1,9 +1,9 @@
 package torimia.arena.services;
 
 import torimia.arena.dto.BattleDto;
-import torimia.arena.dto.BattleResult;
+import torimia.arena.dto.BattleDtoResult;
 
 public interface BattleService {
 
-    BattleResult battle(BattleDto dto);
+    BattleDtoResult battle(BattleDto dto);
 }

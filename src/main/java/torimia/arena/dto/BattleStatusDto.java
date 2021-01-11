@@ -5,8 +5,8 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class StatusDto {
+public class BattleStatusDto {
    private Long id;
 
-   private FightStatus message;
+   private BattleStatus message;
 }

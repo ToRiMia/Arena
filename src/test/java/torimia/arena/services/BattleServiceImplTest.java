@@ -3,7 +3,7 @@ package torimia.arena.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import torimia.arena.dto.BattleDto;
-import torimia.arena.dto.BattleResult;
+import torimia.arena.dto.BattleDtoResult;
 import torimia.arena.dto.SuperheroDtoForBattle;
 
 import java.sql.Date;
@@ -33,12 +33,12 @@ class BattleServiceTest {
         battleDto.setSuperhero1(superhero1);
         battleDto.setSuperhero2(superhero2);
 
-        BattleResult battleResult = service.battle(battleDto);
+        BattleDtoResult battleResult = service.battle(battleDto);
 
         assertThat(battleResult)
-                .returns(Date.valueOf(LocalDate.now()), BattleResult::getDate)
-                .returns(SUPERHERO_ID, BattleResult::getLoserId)
-                .returns(SUPERHERO_ID, BattleResult::getWinnerId);
+                .returns(Date.valueOf(LocalDate.now()), BattleDtoResult::getDate)
+                .returns(SUPERHERO_ID, BattleDtoResult::getLoserId)
+                .returns(SUPERHERO_ID, BattleDtoResult::getWinnerId);
         assertTrue(battleResult.getBattleTime() > 0);
         assertTrue(battleResult.getAttackNumber() > 0);
     }
