@@ -23,6 +23,8 @@ public class SuperheroDtoForBattle {
     }
 
     public SuperheroDtoForBattle attack(SuperheroDtoForBattle secondFighter) {
+        if (secondFighter.getId().equals(id))// хз чи правильно, не можу ударити себе
+            return secondFighter;
         attackCount++;
         int attack = (int) (Math.random() * (this.getDamage()) + 1);
         secondFighter.setHealth(secondFighter.getHealth() - attack);

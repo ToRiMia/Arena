@@ -8,6 +8,9 @@ import torimia.arena.dto.SuperheroDtoForBattle;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,40 +19,60 @@ class BattleServiceTest {
 
     private BattleServiceImpl service;
 
-    private static final Long SUPERHERO_ID = 1L;
-
     @BeforeEach
     void setUp() {
-        service = new BattleServiceImpl(90);
-
+        service = new BattleServiceImpl(20);
     }
 
-//    @Test
-//    void battle() {
-//        SuperheroDtoForBattle superhero1 = createSuperhero();
-//        SuperheroDtoForBattle superhero2 = createSuperhero();
-//
-//        BattleDto battleDto = new BattleDto();
-//        battleDto.setSuperhero1(superhero1);
-//        battleDto.setSuperhero2(superhero2);
-//
-//        BattleDtoResult battleResult = service.battle(battleDto);
-//
-//        assertThat(battleResult)
-//                .returns(Date.valueOf(LocalDate.now()), BattleDtoResult::getDate)
-//                .returns(SUPERHERO_ID, BattleDtoResult::getLoserId)
-//                .returns(SUPERHERO_ID, BattleDtoResult::getWinnerId);
-//        assertTrue(battleResult.getBattleTime() > 0);
-//        assertTrue(battleResult.getAttackNumber() > 0);
-//    }
+    @Test
+    void battleWithThreeFighters() {
+        BattleDto battleDto = new BattleDto();
+        battleDto.setId(10L);
+        SuperheroDtoForBattle superhero1 = createSuperhero(1L);
+        SuperheroDtoForBattle superhero2 = createSuperhero(2L);
+        SuperheroDtoForBattle superhero3 = createSuperhero(3L);
+        List<SuperheroDtoForBattle> list = new ArrayList<>();
+        list.add(superhero1);
+        list.add(superhero2);
+        list.add(superhero3);
+        battleDto.setSuperheroes(list);
 
-    private SuperheroDtoForBattle createSuperhero() {
+        BattleDtoResult battleResult = service.battle(battleDto);
+
+        assertThat(battleResult)
+                .returns(Date.valueOf(LocalDate.now()), BattleDtoResult::getDate);
+        assertTrue(battleResult.getBattleTime() > 0);
+        assertTrue(battleResult.getAttackNumber() > 0);
+        assertTrue(battleResult.getWinnerId() > 0);
+    }
+
+    @Test
+    void battleWithTwoFighters() {
+        BattleDto battleDto = new BattleDto();
+        battleDto.setId(10L);
+        SuperheroDtoForBattle superhero1 = createSuperhero(1L);
+        SuperheroDtoForBattle superhero2 = createSuperhero(2L);
+        List<SuperheroDtoForBattle> list = new ArrayList<>();
+        list.add(superhero1);
+        list.add(superhero2);
+        battleDto.setSuperheroes(list);
+
+        BattleDtoResult battleResult = service.battle(battleDto);
+
+        assertThat(battleResult)
+                .returns(Date.valueOf(LocalDate.now()), BattleDtoResult::getDate);
+        assertTrue(battleResult.getBattleTime() > 0);
+        assertTrue(battleResult.getAttackNumber() > 0);
+        assertTrue(battleResult.getWinnerId() > 0);
+    }
+
+    private SuperheroDtoForBattle createSuperhero(Long id) {
         return SuperheroDtoForBattle.builder()
-                .id(SUPERHERO_ID)
+                .id(id)
                 .nickname("Superman")
                 .attackCount(0)
                 .damage(9)
-                .health(100)
+                .health(1000)
                 .build();
     }
 }

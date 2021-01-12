@@ -29,8 +29,7 @@ public class BattleServiceImpl implements BattleService {
         List<SuperheroDtoForBattle> listOfFighters = chooseOrderOfFightersAttask(dto.getSuperheroes());
 
         Instant beginBattle = Instant.now();
-
-        BattleDtoResult battleResult = battle(listOfFighters, new BattleDtoResult());
+        BattleDtoResult battleResult = battle(listOfFighters);
         Instant endBattle = Instant.now();
 
         Duration battleDuration = Duration.between(beginBattle, endBattle);
@@ -54,33 +53,37 @@ public class BattleServiceImpl implements BattleService {
         return orderOfFightersAttask;
     }
 
-    private BattleDtoResult battle(List<SuperheroDtoForBattle> fighters, BattleDtoResult battleResult) {
-        try {
-            while (fighters.size() > 1) {
-                for (int i = 0; i < fighters.size(); i++) {
-                    for (int j = 0; j < fighters.size(); j++) {
-                        if (i == j) {
-                            continue;
-                        }
-                        fighters.get(i).attack(fighters.get(j));
-                        Thread.sleep(timeToSleep);
-                    }
-                }
+    private BattleDtoResult battle(List<SuperheroDtoForBattle> fighters) {
+        while (fighters.size() > 1) {
+            fighters.forEach(attacker -> roundTryCatch(attacker, fighters));//ConcurrentModificationException
+        }
+        return getBattleResult(fighters.get(0));
+    }
 
-                fighters.removeIf(fighter -> !fighter.isAlive());
-            }
+    private void roundTryCatch(SuperheroDtoForBattle attacker, List<SuperheroDtoForBattle> defenders) {
+        try {
+            round(attacker, defenders);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("Battle not finished");
         }
-
-        getBattleResult(fighters.get(0),battleResult);
-
-        return battleResult;
     }
 
-    private void getBattleResult(SuperheroDtoForBattle winner, BattleDtoResult battleResult) {
+    private void round(SuperheroDtoForBattle attacker, List<SuperheroDtoForBattle> defenders) throws InterruptedException {
+        for (SuperheroDtoForBattle defender : defenders) {
+            if (attacker == defender) {
+                continue;
+            }
+            attacker.attack(defender);
+            Thread.sleep(timeToSleep);
+            defenders.removeIf(fighter -> !fighter.isAlive());
+        }
+    }
+
+    private BattleDtoResult getBattleResult(SuperheroDtoForBattle winner) {
+        BattleDtoResult battleResult = new BattleDtoResult();
         battleResult.setWinnerId(winner.getId());
         battleResult.setAttackNumber(winner.getAttackCount());
+        return battleResult;
     }
 }
