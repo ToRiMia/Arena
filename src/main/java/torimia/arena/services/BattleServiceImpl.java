@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import torimia.arena.dto.BattleDto;
 import torimia.arena.dto.BattleDtoResult;
+import torimia.arena.dto.BattleRound;
 import torimia.arena.dto.SuperheroDtoForBattle;
 
 import java.sql.Date;
@@ -14,6 +15,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.SocketHandler;
+import java.util.stream.Collectors;
 
 @Slf4j
 @AllArgsConstructor
@@ -54,30 +57,40 @@ public class BattleServiceImpl implements BattleService {
     }
 
     private BattleDtoResult battle(List<SuperheroDtoForBattle> fighters) {
-        while (fighters.size() > 1) {
-            fighters.forEach(attacker -> roundTryCatch(attacker, fighters));//ConcurrentModificationException
+        List<SuperheroDtoForBattle> defenders = fighters;
+        SuperheroDtoForBattle winner = new SuperheroDtoForBattle();
+        while (!defenders.isEmpty()) {
+            for (int i = 0; i < fighters.size(); i++) {
+                if (!defenders.contains(fighters.get(i)))
+                    continue;
+                SuperheroDtoForBattle attacker = fighters.get(i);
+                defenders = fighters.stream().filter(fighter -> (!fighter.equals(attacker) && (fighter.isAlive()))).collect(Collectors.toList());
+                defenders = roundTryCatch(attacker, defenders);
+                winner = attacker;
+            }
         }
-        return getBattleResult(fighters.get(0));
+        return getBattleResult(winner);
     }
 
-    private void roundTryCatch(SuperheroDtoForBattle attacker, List<SuperheroDtoForBattle> defenders) {
+    private List<SuperheroDtoForBattle> roundTryCatch(SuperheroDtoForBattle attacker, List<SuperheroDtoForBattle> defenders) {
         try {
-            round(attacker, defenders);
+            return round(attacker, defenders);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("Battle not finished");
+            return new ArrayList<>();
         }
     }
 
-    private void round(SuperheroDtoForBattle attacker, List<SuperheroDtoForBattle> defenders) throws InterruptedException {
+    private List<SuperheroDtoForBattle> round(SuperheroDtoForBattle attacker, List<SuperheroDtoForBattle> defenders) throws InterruptedException {
+        List<SuperheroDtoForBattle> aliveDefenders;
+
         for (SuperheroDtoForBattle defender : defenders) {
-            if (attacker == defender) {
-                continue;
-            }
             attacker.attack(defender);
             Thread.sleep(timeToSleep);
-            defenders.removeIf(fighter -> !fighter.isAlive());
         }
+        aliveDefenders = defenders.stream().filter(SuperheroDtoForBattle::isAlive).collect(Collectors.toList());
+        return aliveDefenders;
     }
 
     private BattleDtoResult getBattleResult(SuperheroDtoForBattle winner) {
