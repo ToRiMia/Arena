@@ -6,16 +6,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import torimia.arena.dto.BattleDto;
 import torimia.arena.dto.BattleDtoResult;
-import torimia.arena.dto.BattleRound;
 import torimia.arena.dto.SuperheroDtoForBattle;
 
-import java.sql.Date;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.SocketHandler;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,11 +30,8 @@ public class BattleServiceImpl implements BattleService {
         BattleDtoResult battleResult = battle(listOfFighters);
         Instant endBattle = Instant.now();
 
-        Duration battleDuration = Duration.between(beginBattle, endBattle);
-        battleResult.setBattleTime(battleDuration.getSeconds());
-
-        Date dateOfBattle = Date.valueOf(LocalDate.now());
-        battleResult.setDate(dateOfBattle);
+        battleResult.setStartOfBattle(beginBattle);
+        battleResult.setEndOfBattle(endBattle);
 
         battleResult.setId(dto.getId());
 

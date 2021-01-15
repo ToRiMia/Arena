@@ -3,6 +3,7 @@ package torimia.arena.dto;
 import lombok.*;
 
 import java.sql.Date;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -14,10 +15,9 @@ public class BattleDtoResult {
 
     private Long winnerId;
 
-    private Long battleTime;
-
     private Integer attackNumber;
 
-    private Date date;
+    private Instant startOfBattle;
 
+    private Instant endOfBattle;
 }
