@@ -1,11 +1,14 @@
 package torimia.arena.services;
 
-import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import torimia.arena.controller.SocketBattleService;
 import torimia.arena.dto.BattleDto;
 import torimia.arena.dto.BattleDtoResult;
+import torimia.arena.dto.BattleProgressDto;
 import torimia.arena.dto.SuperheroDtoForBattle;
 
 import java.time.Instant;
@@ -14,12 +17,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-@AllArgsConstructor
+@Data
+@RequiredArgsConstructor
 @Service
 public class BattleServiceImpl implements BattleService {
 
     @Value("${battle-service.int.time-to-sleep}")
     private final int timeToSleep;
+
+    private final SocketBattleService socketBattleService;
 
     @Override
     public BattleDtoResult battle(BattleDto dto) {
@@ -35,6 +41,7 @@ public class BattleServiceImpl implements BattleService {
 
         battleResult.setId(dto.getId());
 
+        socketBattleService.sendResult(battleResult);
         return battleResult;
     }
 
@@ -66,6 +73,7 @@ public class BattleServiceImpl implements BattleService {
 
     private List<SuperheroDtoForBattle> roundTryCatch(SuperheroDtoForBattle attacker, List<SuperheroDtoForBattle> defenders) {
         try {
+            socketBattleService.sendProgress(new BattleProgressDto(attacker, defenders));
             return round(attacker, defenders);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

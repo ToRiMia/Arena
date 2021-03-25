@@ -2,7 +2,6 @@ package torimia.arena.dto;
 
 import lombok.*;
 
-import java.sql.Date;
 import java.time.Instant;
 
 @Data

@@ -1,5 +1,6 @@
 package torimia.arena.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 @Data
@@ -18,6 +19,7 @@ public class SuperheroDtoForBattle {
 
     private Integer attackCount = 0;
 
+    @JsonIgnore
     public boolean isAlive() {
         return health > 0;
     }
