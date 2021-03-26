@@ -1,4 +1,4 @@
-package torimia.arena.controller;
+package torimia.arena.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

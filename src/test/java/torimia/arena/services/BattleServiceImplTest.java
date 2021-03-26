@@ -2,7 +2,6 @@ package torimia.arena.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import torimia.arena.controller.SocketBattleService;
 import torimia.arena.dto.BattleDto;
 import torimia.arena.dto.BattleDtoResult;
 import torimia.arena.dto.SuperheroDtoForBattle;
