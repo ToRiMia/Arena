@@ -9,8 +9,8 @@ import java.util.List;
 public class BattleDto {
 
     @NotNull
-    Long id;
+    private Long id;
 
     @NotNull(message = "Fighters must be not null")
-    List<SuperheroDtoForBattle> superheroes;
+    private List<SuperheroDtoForBattle> superheroes;
 }

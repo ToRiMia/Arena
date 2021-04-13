@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import torimia.arena.dto.BattleDtoResult;
-import torimia.arena.dto.BattleProgressDto;
+import torimia.arena.dto.BattleProgressRoundDto;
 
 @Slf4j
 @Controller
@@ -14,7 +14,7 @@ public class SocketBattleService {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
 
-    public void sendProgress(BattleProgressDto battleProgress) {
+    public void sendProgress(BattleProgressRoundDto battleProgress) {
         this.simpMessagingTemplate.convertAndSend("/topic/battle_progress", battleProgress);
     }
 
@@ -23,7 +23,7 @@ public class SocketBattleService {
     }
 
 //    @SendTo("/topic/battle_progress")
-//    public BattleProgressDto sendProgress(BattleProgressDto battleProgress) {
+//    public BattleProgressRoundDto sendProgress(BattleProgressRoundDto battleProgress) {
 //        log.info("Send progress to topic: {}", battleProgress);
 //        return battleProgress;
 //    }
