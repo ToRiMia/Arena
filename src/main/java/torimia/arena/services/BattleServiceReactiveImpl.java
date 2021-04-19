@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import torimia.arena.ArenaRepository;
 import torimia.arena.dto.BattleDto;
@@ -12,6 +13,7 @@ import torimia.arena.dto.SuperheroDtoForBattle;
 import torimia.arena.entity.BattleProgress;
 
 import java.time.Instant;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -24,7 +26,7 @@ public class BattleServiceReactiveImpl implements BattleService {
     private final ArenaRepository arenaRepository;
 
     @Override
-    public Mono<BattleDtoResult> battle(Mono<BattleDto> dto) {
+    public Flux<BattleDtoResult> battle(Flux<BattleDto> dto) {
         return dto.map(value -> {
             BattleDtoResult result = new BattleDtoResult();
             result.setId(value.getId());
@@ -59,7 +61,7 @@ public class BattleServiceReactiveImpl implements BattleService {
                 }
                 try {
                     System.out.println(Thread.currentThread().getName() + " ----------It's round for " + value.getId());
-                    Thread.sleep(20);
+                    Thread.sleep(timeToSleep);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -81,8 +83,9 @@ public class BattleServiceReactiveImpl implements BattleService {
                 .build();
 
         Mono<BattleProgress> dtoMono = arenaRepository.save(progress);
-        dtoMono.subscribe(value -> log.info("Saved in db: {}", value), Throwable::printStackTrace);
-        System.out.println(Thread.currentThread().getName() + " save");
+        dtoMono.subscribe(value -> {
+            log.info("Saved in db: {}", value);
+        }, Throwable::printStackTrace);
     }
 
 

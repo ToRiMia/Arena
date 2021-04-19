@@ -1,7 +1,7 @@
 package torimia.arena.services;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+//import org.junit.jupiter.api.BeforeEach;
+//import org.junit.jupiter.api.Test;
 import torimia.arena.ArenaRepository;
 import torimia.arena.dto.BattleDto;
 import torimia.arena.dto.BattleDtoResult;
@@ -10,18 +10,18 @@ import torimia.arena.dto.SuperheroDtoForBattle;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
+//import static org.assertj.core.api.Assertions.assertThat;
+//import static org.junit.jupiter.api.Assertions.assertTrue;
+//import static org.mockito.Mockito.mock;
 
-class BattleServiceTest {
-
-    private BattleServiceImpl service;
-
-    @BeforeEach
-    void setUp() {
-        service = new BattleServiceImpl(50, mock(SocketBattleService.class), mock(ArenaRepository.class));
-    }
+//class BattleServiceTest {
+//
+//    private BattleServiceImpl service;
+//
+//    @BeforeEach
+//    void setUp() {
+//        service = new BattleServiceImpl(50, mock(SocketBattleService.class), mock(ArenaRepository.class));
+//    }
 
 //    @Test
 //    void battleWithThreeFighters() {
@@ -72,4 +72,4 @@ class BattleServiceTest {
 //                .health(100)
 //                .build();
 //    }
-}
+//}

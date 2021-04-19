@@ -1,16 +1,24 @@
 package torimia.arena.handlers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rabbitmq.client.Delivery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+//import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.rabbitmq.Receiver;
 import torimia.arena.dto.BattleDto;
 import torimia.arena.dto.BattleStatus;
 import torimia.arena.dto.BattleStatusDto;
 import torimia.arena.services.BattleService;
+
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.Set;
 
 @Slf4j
 @Component
@@ -23,19 +31,44 @@ public class ListenerMQ {
     private final String battleStatusQueueName;
     @Value("${rabbitmq.queue.battle-result.name}")
     private final String battleResultQueueName;
-    private final RabbitTemplate rabbitTemplate;
+//    private final RabbitTemplate rabbitTemplate;
+    private final Receiver receiver;
+    private final ObjectMapper mapper;
+    private final Flux<Delivery> deliveryFlux;
 
-    @RabbitListener(queues = "battle", concurrency = "5")
-    public void sendResponseToSuperheroControllerRabbit(BattleDto dto) {
+    //    @RabbitListener(queues = "battle", containerFactory = "connectionFactoryRabbit")
+
+
+    @PostConstruct
+    private void init() {
+        deliveryFlux
+                .map(Delivery::getBody)
+                .subscribe(m -> {
+                    log.info("Received message {}", new String(m));
+                    try {
+                        log.info(Thread.currentThread().getName() + " in init");
+//                        if(true)
+//                            throw new IOException("Hello !");
+                        sendResponseToSuperheroControllerRabbit(Flux.just(mapper.readValue(m, BattleDto.class)));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+    }
+
+    public void sendResponseToSuperheroControllerRabbit(Flux<BattleDto> reactiveDto) {
         try {
-            Mono<BattleDto> reactiveDto = Mono.just(dto);
-
+            Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+            threadSet.forEach(k -> log.info(k.getName()));
+//
+//            Mono<BattleDto> reactiveDto = Mono.just(dto);
+//
             reactiveDto
                     .doOnNext(value -> {
                         log.info("-----------Battle {} started-------------", value.getId());
                         log.info("Received BattleDto for starting battle: {}", value);
-                        rabbitTemplate.convertAndSend(battleStatusQueueName, new BattleStatusDto(value.getId(), BattleStatus.STARTED));
-                        System.out.println(Thread.currentThread().getName() + " ------------It's start");
+//                        rabbitTemplate.convertAndSend(battleStatusQueueName, new BattleStatusDto(value.getId(), BattleStatus.STARTED));
+                        System.out.println(Thread.currentThread().getName() + " ------------It's start " + value.getId());
                     })
                     .subscribe();
 
@@ -45,14 +78,14 @@ public class ListenerMQ {
 
             service.battle(reactiveDto).subscribe(value -> {
                 log.info("Result of battle: {}", value);
-                rabbitTemplate.convertAndSend(battleResultQueueName, value);
+//                rabbitTemplate.convertAndSend(battleResultQueueName, value);
                 log.info("-----------Battle {} finished-------------", value.getId());
-                System.out.println(Thread.currentThread().getName() + " -----------It's result");
+                System.out.println(Thread.currentThread().getName() + " -----------It's result " + value.getId());
             });
 
         } catch (Exception ex) {
             log.error("Error in sending battle result: " + ex);
-            rabbitTemplate.convertAndSend(battleStatusQueueName, new BattleStatusDto(dto.getId(), BattleStatus.FINISHED_UNSUCCESSFUL));
+//            rabbitTemplate.convertAndSend(battleStatusQueueName, new BattleStatusDto(dto.getId(), BattleStatus.FINISHED_UNSUCCESSFUL));
         }
     }
 
@@ -80,3 +113,4 @@ public class ListenerMQ {
 //    }
 
 }
+

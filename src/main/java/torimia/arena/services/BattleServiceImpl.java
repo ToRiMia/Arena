@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import torimia.arena.ArenaRepository;
@@ -18,7 +17,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Data
@@ -29,45 +27,33 @@ public class BattleServiceImpl implements BattleService {
     @Value("${battle-service.int.time-to-sleep}")
     private final int timeToSleep;
 
-    private final SocketBattleService socketBattleService;
+//    private final SocketBattleService socketBattleService;
     private final ArenaRepository arenaRepository;
 
     private static int counter = 20;
 
     @Override
-    public Mono<BattleDtoResult> battle(Mono<BattleDto> dto) {
+    public Flux<BattleDtoResult> battle(Flux<BattleDto> dtoMono) {
+        BattleDto dto = dtoMono.blockFirst();
 
-
-//        List<SuperheroDtoForBattle> listOfFighters = chooseOrderOfFightersAttask(dto.getSuperheroes());
+        List<SuperheroDtoForBattle> listOfFighters = chooseOrderOfFightersAttask(dto.getSuperheroes());
 
         Instant beginBattle = Instant.now();
-//        Mono<BattleDto> listOfFighters = dto.map(value -> chooseOrderOfFightersAttask(value));
 
-        dto.map(dto1 -> Mono.just(dto1.getSuperheroes()));
-
-
-        Stream<Stream<Integer>> streamStream = Stream.of(1, 2, 3).map(i -> Stream.of(i));
-        Stream<Integer> streamStream2 = Stream.of(1, 2, 3).flatMap(i -> Stream.of(i));
-        Stream.of(1,2,3).map(i -> i);
-
-        Mono<BattleDtoResult> result = dto.map(value -> battle(chooseOrderOfFightersAttask(value), value.getId()));
-
-//        result.subscribe();
-//        BattleDtoResult battleResult = battle(listOfFighters, dto.getId());
+        BattleDtoResult battleResult = battle(listOfFighters, dto.getId());
         Instant endBattle = Instant.now();
 
-//        battleResult.setStartOfBattle(beginBattle);
-//        battleResult.setEndOfBattle(endBattle);
+        battleResult.setStartOfBattle(beginBattle);
+        battleResult.setEndOfBattle(endBattle);
 
-//        battleResult.setId(dto.getId());
+        battleResult.setId(dto.getId());
 
 //        socketBattleService.sendResult(battleResult);
-        return result;
+        return Flux.just(battleResult);
     }
 
-    private BattleDto chooseOrderOfFightersAttask(BattleDto dto) {
+    private List<SuperheroDtoForBattle> chooseOrderOfFightersAttask(List<SuperheroDtoForBattle> superheroes) {
         List<SuperheroDtoForBattle> orderOfFightersAttask = new ArrayList<>();
-        List<SuperheroDtoForBattle> superheroes = dto.getSuperheroes();
 
         for (int i = 0; i < superheroes.size() + orderOfFightersAttask.size(); i++) {
             SuperheroDtoForBattle chosenSuperhero = superheroes.get((int) (Math.random() * (superheroes.size())));
@@ -75,32 +61,29 @@ public class BattleServiceImpl implements BattleService {
             superheroes.remove(chosenSuperhero);
         }
 
-        dto.setSuperheroes(orderOfFightersAttask);
-        return dto;
+        return orderOfFightersAttask;
     }
 
-    private BattleDtoResult battle(BattleDto battleDto, Long battleId) {
-            List<SuperheroDtoForBattle> fighters = battleDto.getSuperheroes();
+    private BattleDtoResult battle(List<SuperheroDtoForBattle> fighters, Long battleId) {
+        List<SuperheroDtoForBattle> defenders = fighters;
+        SuperheroDtoForBattle winner = new SuperheroDtoForBattle();
+        while (!defenders.isEmpty()) {
+            for (int i = 0; i < fighters.size(); i++) {
+                SuperheroDtoForBattle attacker = fighters.get(i);
+                if (!defenders.contains(attacker))
+                    continue;
 
-            List<SuperheroDtoForBattle> defenders = fighters;
-            SuperheroDtoForBattle winner = new SuperheroDtoForBattle();
-            while (!defenders.isEmpty()) {
-                for (int i = 0; i < fighters.size(); i++) {
-                    SuperheroDtoForBattle attacker = fighters.get(i);
-                    if (!defenders.contains(attacker))
-                        continue;
-
-                    defenders = fighters.stream().filter(fighter -> (!fighter.equals(attacker) && (fighter.isAlive()))).collect(Collectors.toList());
-                    defenders = roundTryCatch(attacker, defenders, battleId);
-                    winner = attacker;
-                }
+                defenders = fighters.stream().filter(fighter -> (!fighter.equals(attacker) && (fighter.isAlive()))).collect(Collectors.toList());
+                defenders = roundTryCatch(attacker, defenders, battleId);
+                winner = attacker;
             }
-            return getBattleResult(winner);
+        }
+        return getBattleResult(winner);
     }
 
     private List<SuperheroDtoForBattle> roundTryCatch(SuperheroDtoForBattle attacker, List<SuperheroDtoForBattle> defenders, Long battleId) {
         try {
-            socketBattleService.sendProgress(new BattleProgressRoundDto(attacker, defenders));
+//            socketBattleService.sendProgress(new BattleProgressRoundDto(attacker, defenders));
             return round(attacker, defenders, battleId);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -119,11 +102,6 @@ public class BattleServiceImpl implements BattleService {
             saveBattleProgress(attacker, battleId, defender, healthBeforeAttack);
 
             Thread.sleep(timeToSleep);
-
-            System.out.println(Thread.currentThread().getName() + " " + counter);
-//            counter = counter + 10;
-//            Thread.sleep(counter);
-
         }
         aliveDefenders = defenders.stream().filter(SuperheroDtoForBattle::isAlive).collect(Collectors.toList());
         return aliveDefenders;
@@ -140,7 +118,6 @@ public class BattleServiceImpl implements BattleService {
 
         Mono<BattleProgress> dtoMono = arenaRepository.save(progress);
         dtoMono.subscribe(value -> log.info("Saved in db: {}", value), Throwable::printStackTrace);
-        System.out.println(Thread.currentThread().getName() + " save");
     }
 
     private BattleDtoResult getBattleResult(SuperheroDtoForBattle winner) {
