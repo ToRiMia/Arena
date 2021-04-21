@@ -1,27 +1,25 @@
 package torimia.arena.handlers;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Delivery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-//import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.rabbitmq.Receiver;
+import reactor.rabbitmq.Sender;
 import torimia.arena.dto.BattleDto;
-import torimia.arena.dto.BattleStatus;
-import torimia.arena.dto.BattleStatusDto;
+import torimia.arena.dto.BattleDtoResult;
 import torimia.arena.services.BattleService;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.Set;
 
 @Slf4j
-@Component
+@Service
 @RequiredArgsConstructor
 public class ListenerMQ {
 
@@ -31,62 +29,76 @@ public class ListenerMQ {
     private final String battleStatusQueueName;
     @Value("${rabbitmq.queue.battle-result.name}")
     private final String battleResultQueueName;
-//    private final RabbitTemplate rabbitTemplate;
+    //    private final RabbitTemplate rabbitTemplate;
     private final Receiver receiver;
+    private final Sender sender;
     private final ObjectMapper mapper;
-    private final Flux<Delivery> deliveryFlux;
-
-    //    @RabbitListener(queues = "battle", containerFactory = "connectionFactoryRabbit")
-
 
     @PostConstruct
     private void init() {
-        deliveryFlux
+        receiver.consumeNoAck("battle")
+                .publishOn(Schedulers.boundedElastic())
                 .map(Delivery::getBody)
-                .subscribe(m -> {
-                    log.info("Received message {}", new String(m));
+                .map(bytes -> {
                     try {
-                        log.info(Thread.currentThread().getName() + " in init");
-//                        if(true)
-//                            throw new IOException("Hello !");
-                        sendResponseToSuperheroControllerRabbit(Flux.just(mapper.readValue(m, BattleDto.class)));
+                        return mapper.readValue(bytes, BattleDto.class);
                     } catch (IOException e) {
                         e.printStackTrace();
+                        return new BattleDto();
+                    }
+                })
+                .publish(this::sendResponseToSuperheroControllerRabbit)
+                .parallel()
+                .subscribe();
+
+//                .(sender::sendResult)
+//                .subscribe(v -> {
+//                    log.info("Received message from first listener {}", new String(v));
+//                    try {
+//                        sendResponseToSuperheroControllerRabbit(Mono.just(mapper.readValue(v, BattleDto.class)).publishOn(Schedulers.boundedElastic()));
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }, Throwable::printStackTrace);
+    }
+
+    public Flux<BattleDtoResult> sendResponseToSuperheroControllerRabbit(Flux<BattleDto> reactiveDto) {
+        return reactiveDto
+                .publish(this::sendStartedStatus)
+//                .publishOn(Schedulers.boundedElastic())
+                .publish(service::battle)
+                .publish(this::sendResult);
+    }
+
+    private Flux<BattleDtoResult> sendResult(Flux<BattleDtoResult> flux) {
+        return flux
+                .doOnNext(value -> {
+                    try {
+                        if (((int) (Math.random() * 10)) == 5) {
+                            throw new BattleNotFinishedException("Generated exception for checking service work during fatal battle ending");
+                        }
+                        log.info("Result of battle: {}", value);
+                        log.info("-----------Battle {} finished-------------", value.getId());
+//                        sender
+//                                .send(Flux.just(new OutboundMessage("", battleResultQueueName, value.toString().getBytes())))
+//                                .subscribe();
+
+                    } catch (Exception ex) {
+                        log.error("Error in sending battle result: " + ex);
+//            rabbitTemplate.convertAndSend(battleStatusQueueName, new BattleStatusDto(dto.getId(), BattleStatus.FINISHED_UNSUCCESSFUL));
                     }
                 });
     }
 
-    public void sendResponseToSuperheroControllerRabbit(Flux<BattleDto> reactiveDto) {
-        try {
-            Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-            threadSet.forEach(k -> log.info(k.getName()));
-//
-//            Mono<BattleDto> reactiveDto = Mono.just(dto);
-//
-            reactiveDto
-                    .doOnNext(value -> {
-                        log.info("-----------Battle {} started-------------", value.getId());
-                        log.info("Received BattleDto for starting battle: {}", value);
-//                        rabbitTemplate.convertAndSend(battleStatusQueueName, new BattleStatusDto(value.getId(), BattleStatus.STARTED));
-                        System.out.println(Thread.currentThread().getName() + " ------------It's start " + value.getId());
-                    })
-                    .subscribe();
-
-            if (((int) (Math.random() * 10)) == 5) {
-                throw new BattleNotFinishedException("Generated exception for checking service work during fatal battle ending");
-            }
-
-            service.battle(reactiveDto).subscribe(value -> {
-                log.info("Result of battle: {}", value);
-//                rabbitTemplate.convertAndSend(battleResultQueueName, value);
-                log.info("-----------Battle {} finished-------------", value.getId());
-                System.out.println(Thread.currentThread().getName() + " -----------It's result " + value.getId());
-            });
-
-        } catch (Exception ex) {
-            log.error("Error in sending battle result: " + ex);
-//            rabbitTemplate.convertAndSend(battleStatusQueueName, new BattleStatusDto(dto.getId(), BattleStatus.FINISHED_UNSUCCESSFUL));
-        }
+    private Flux<BattleDto> sendStartedStatus(Flux<BattleDto> flux) {
+        return flux.doOnNext(value -> {
+            log.info("-----------Battle {} started-------------", value.getId());
+            log.info("Received BattleDto for starting battle: {}", value);
+//                        sender
+//                                .send(Flux.just(new OutboundMessage("", battleStatusQueueName,
+//                                        new BattleStatusDto(value.getId(), BattleStatus.STARTED).toString().getBytes())))
+//                                .subscribe();
+        });
     }
 
 

@@ -1,29 +1,20 @@
 package torimia.arena.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-//import com.rabbitmq.client.Delivery;
-//import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+//import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+//import org.springframework.amqp.core.Queue;
+//import org.springframework.amqp.core.QueueBuilder;
 //import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 //import org.springframework.amqp.support.converter.MessageConverter;
-import com.rabbitmq.client.Delivery;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import reactor.rabbitmq.RabbitFlux;
 import reactor.rabbitmq.Receiver;
 import reactor.rabbitmq.ReceiverOptions;
-
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
+import reactor.rabbitmq.Sender;
 
 @Configuration
-//@EnableRabbit
 public class RabbitMQConfig {
 
     @Value("${rabbitmq.queue.battle.name}")
@@ -43,34 +34,35 @@ public class RabbitMQConfig {
 //        return new Jackson2JsonMessageConverter(mapper);
 //    }
 
-    @Bean
-    public Mono<Connection> connectionFactoryRabbit(){
-        ConnectionFactory connectionFactory = new ConnectionFactory();
-        connectionFactory.useNio();
-//        return Mono.just(connectionFactory.newConnection());
-        return Mono.fromCallable(() -> connectionFactory.newConnection("reactor-rabbit"));
-    }
-
 //    @Bean
 //    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
 //        final RabbitTemplate template = new RabbitTemplate(connectionFactory);
 //        template.setMessageConverter(jsonMessageConverter());
 //        return template;
 //    }
-
+//
     @Bean
-    public Receiver receiver(Mono<Connection> connection) {
-        ReceiverOptions receiverOptions = new ReceiverOptions()
-                .connectionMono(connection)
-                .connectionSubscriptionScheduler(Schedulers.boundedElastic());
+    public Receiver receiver() {
+//        ReceiverOptions receiverOptions = new ReceiverOptions()
+//                .connectionFactory(connectionFactoryRabbit());
+////                .connectionSubscriptionScheduler(Schedulers.boundedElastic());
 
-        return RabbitFlux.createReceiver(receiverOptions);
+        return RabbitFlux.createReceiver();
     }
 
     @Bean
-    Flux<Delivery> deliveryFlux(Receiver receiver) {
-        return receiver.consumeNoAck(battleQueueName);
-    } // TODO: 19.04.21 should google about  "consumeNoAck"
+    public Sender sender() {
+//        ReceiverOptions receiverOptions = new ReceiverOptions()
+//                .connectionFactory(connectionFactoryRabbit());
+////                .connectionSubscriptionScheduler(Schedulers.boundedElastic());
+
+        return RabbitFlux.createSender();
+    }
+
+//    @Bean
+//    Flux<Delivery> deliveryFlux(Receiver receiver) {
+//        return receiver.consumeNoAck(battleQueueName);
+//    }
 
 //    @Bean
 //    public Receiver receiver() {
